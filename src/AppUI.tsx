@@ -4,6 +4,7 @@ import { QualityContext } from "./soc/quality";
 import { CHAPTERS, TOTAL } from "./chapters";
 import { getArticleForLevel, parseMarkdown } from "./chapterArticles";
 import { TRACKS, getTrackArticle } from "./trackArticles";
+import { ArticlePage } from "./ArticlePage";
 
 interface SceneProps {
   t: number;
@@ -112,12 +113,15 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
   const [submitting, setSubmitting] = useState(false);
   const [hubAtBottom, setHubAtBottom] = useState(false);
 
+  const [activeArticleTrack, setActiveArticleTrack] = useState<string | null>(null);
+
   useEffect(() => {
     setSelectedTrack(null);
     setSelectedBlock(null);
     setHubAtBottom(false);
     setSubscribed(false);
     setEmail("");
+    setActiveArticleTrack(null);
   }, [targetLevel]);
 
   // Track targetLevel in a ref to keep global listeners current without rebinding
@@ -428,6 +432,15 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
             </div>
             <div className="text-left text-white/80">
               {parseMarkdown(activeArticle)}
+              {targetLevel === 3 && selectedTrack !== null && (
+                <button
+                  onClick={() => setActiveArticleTrack(selectedTrack)}
+                  className="w-full mt-4 flex items-center justify-center gap-2 text-[9px] font-mono font-bold tracking-[0.2em] text-[#e8a23a] hover:text-white transition-all uppercase border border-[#e8a23a]/30 hover:border-white px-3 py-2 rounded-lg bg-black/30 cursor-pointer"
+                >
+                  <span>Read Full Track Article</span>
+                  <span>➔</span>
+                </button>
+              )}
             </div>
           </div>
         );
@@ -627,7 +640,10 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
                     <p className="text-xs leading-relaxed text-white/50 font-light mt-2.5">
                       {track.longSummary}
                     </p>
-                    <button className="self-start mt-4 flex items-center gap-2 text-[9px] font-mono font-bold tracking-[0.2em] text-[#e8a23a] hover:text-white transition-all uppercase border border-[#e8a23a]/30 hover:border-white px-4 py-2 rounded-lg bg-black/10 hover:bg-black/30">
+                    <button
+                      onClick={() => setActiveArticleTrack(track.id)}
+                      className="self-start mt-4 flex items-center gap-2 text-[9px] font-mono font-bold tracking-[0.2em] text-[#e8a23a] hover:text-white transition-all uppercase border border-[#e8a23a]/30 hover:border-white px-4 py-2 rounded-lg bg-black/10 hover:bg-black/30 cursor-pointer"
+                    >
                       <span>Browse Track</span>
                       <span className="inline-block transition-transform duration-200 group-hover:translate-x-0.5">➔</span>
                     </button>
@@ -794,6 +810,12 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
           ↑ ↓ scroll or arrow keys
         </div>
       </div>
+      {activeArticleTrack && (
+        <ArticlePage
+          trackId={activeArticleTrack}
+          onClose={() => setActiveArticleTrack(null)}
+        />
+      )}
     </div>
   );
 }
