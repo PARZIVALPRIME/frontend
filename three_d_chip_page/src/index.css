@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: -apple-system, "SF Pro Display", "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* minimal range slider */
+.soc-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(232,162,58,0.5), rgba(255,255,255,0.06));
+  outline: none;
+}
+
+.soc-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e8a23a;
+  border: 1.5px solid #0a0c10;
+  box-shadow: 0 0 6px rgba(232,162,58,0.5);
+  cursor: pointer;
+}
+
+.soc-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e8a23a;
+  border: 1.5px solid #0a0c10;
+  box-shadow: 0 0 6px rgba(232,162,58,0.5);
+  cursor: pointer;
+}

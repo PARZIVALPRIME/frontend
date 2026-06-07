@@ -106,6 +106,7 @@ export const ZOOM_LEVELS: ZoomLevel[] = [
     id: 11,
     name: "The Hub",
     subtitle: "Complete Index Directory",
+    description: "",
     defaultPosition: [0, 50, 60],
     defaultTarget: [0, -2, 0],
     fov: 32,

@@ -1,145 +1,93 @@
-import React from "react";
+// import React from "react";
 
 export interface Track {
   id: string;
   name: string;
   icon: string;
   desc: string;
+  longSummary: string;
 }
 
 export const TRACKS: Track[] = [
-  { id: "isa", name: "Instruction Sets (ISAs)", icon: "📜", desc: "The hardware-software contract (RISC-V, ARM, x86)" },
-  { id: "pipelines", name: "Processor Pipelines", icon: "⚙️", desc: "Out-of-order execution, renaming, and scheduling" },
-  { id: "memory", name: "Caches & Memory", icon: "⚡", desc: "Cache coherence, virtual memory, and DRAM" },
-  { id: "interconnects", name: "Silicon Interconnects", icon: "🌐", desc: "On-die buses and Network-on-Chip (NoC) systems" },
-  { id: "gpu", name: "GPU & Parallelism", icon: "🎮", desc: "Throughput-oriented shader cores & raytracing" },
-  { id: "ai", name: "AI Accelerators", icon: "🧠", desc: "Matrix multiplication and systolic dataflow arrays" },
-  { id: "vlsi", name: "VLSI Fabrication", icon: "🔬", desc: "Photolithography, GAA transistors, and physics" },
-  { id: "power", name: "Power & DVFS", icon: "🔋", desc: "Voltage islands, thermal sensors, and DVFS" },
-  { id: "os-compilers", name: "OS & Compilers", icon: "🛠️", desc: "Register allocation, scheduling, and MMU control" },
+  {
+    id: "silicon-explained",
+    name: "Silicon Explained",
+    icon: "🔬",
+    desc: "Textbook architecture concepts reimagined.",
+    longSummary: "Textbook architecture concepts reimagined. The differentiator is not simplification — it's adding the layer the textbook omits: design intent, historical alternatives, geopolitical and industry consequences. A piece on branch prediction connects to why prediction accuracy became a security surface. A piece on cache coherence connects to why distributed manufacturing has the same fundamental constraints. Cultural references and humor are used when they genuinely illuminate — not as decoration."
+  },
+  {
+    id: "die-chronicles",
+    name: "Die Chronicles",
+    icon: "🖼️",
+    desc: "Dieshot analysis one level deeper.",
+    longSummary: "Dieshot analysis one level deeper than identifying functional blocks. The question each piece answers: given what the die layout shows — block proportions, cache sizing relative to compute, memory interface width, interconnect structure — what does this tell you about the design philosophy and the tradeoffs the team made? Written by someone who can reason about what a large LLC relative to compute implies about target workloads, not just label rectangles."
+  },
+  {
+    id: "chip-lore",
+    name: "Chip Lore",
+    icon: "📖",
+    desc: "Company stories with a technical spine.",
+    longSummary: "Company stories with a technical spine. Intel, NVIDIA, AMD, TSMC, Qualcomm, Samsung — their decisions, pivots, dependencies, and tactics from founding era to present. The interesting question is never just what happened but what technical constraint or market misread forced the decision. Intel's foundry collapse is a story about what happens when process node leadership evaporates and you have no organizational muscle for either role independently. NVIDIA's ML dominance is a story about a bet on general-purpose parallel compute made before the target was obvious. Each piece builds toward a technical thesis, not just a timeline."
+  },
+  {
+    id: "code-to-core",
+    name: "Code → Core",
+    icon: "💻",
+    desc: "DSA complexity mapped to microarchitectural execution.",
+    longSummary: "The most original track. Take a DSA problem — naive solution and optimized solution. Don't just analyze time complexity. Analyze what actually happens in hardware: what the naive O(n²) solution does to the L1 cache, what the access pattern looks like to the prefetcher, what the branch predictor sees in both cases, how loop unrolling changes the ILP the OoO engine can exploit. Show the compiled assembly for both. Annotate the critical path. Map instructions to pipeline stages. Compare the hardware behavior of the naive and optimized paths with precision. Nobody does this consistently in high-quality form. Format invented here — it defines the genre for this track."
+  },
+  {
+    id: "paper-lab",
+    name: "Paper Lab",
+    icon: "🧪",
+    desc: "Honest architecture research paper breakdowns.",
+    longSummary: "Research paper breakdowns for the architecture literature. The format goes beyond summary: explain why the evaluation methodology is set up the way it is, what the paper's implicit assumptions are, where the result is fragile, what it means for follow-on work. An honest take on papers — including their limitations — is more valuable than a summary. Monthly cadence. Depth over frequency. Covers both landmark older papers and recent work from ISCA, MICRO, HPCA, ASPLOS, ISPASS."
+  },
+  {
+    id: "the-tradeoff",
+    name: "The Tradeoff",
+    icon: "⚖️",
+    desc: "Structured versus series mapping architectural tradeoffs.",
+    longSummary: "Versus series. Every piece answers three questions: what exactly is the tradeoff, who does each side favor, and under what real-world conditions does the \"losing\" choice actually win. In-order vs OoO. CISC vs RISC. Monolithic vs chiplet. SRAM vs DRAM for cache. Systolic vs SIMT. The format is structured: state the tradeoff, present both sides with actual numbers where possible, then give the real-world conditions that determine which side wins. Architecture is fundamentally about tradeoffs — this track makes that reasoning explicit and teachable."
+  },
+  {
+    id: "post-mortem",
+    name: "Post Mortem",
+    icon: "💀",
+    desc: "Analysis of computer architecture's most instructive failures.",
+    longSummary: "Architecture's most instructive failures. Itanium: a legitimate architectural idea (compilerdirected ILP) that failed because compiler technology couldn't deliver what the ISA demanded, and x86 compatibility mattered more than anyone expected. Bulldozer: a core-sharing model that made sense for throughput workloads and collapsed against gaming workloads because the shared FPU became the bottleneck. Larrabee: a bet that scalar x86 cores plus wide SIMD would match a purpose-built GPU architecture — the assumption was wrong in ways that weren't obvious until implementation. Each piece is built around an assumption that seemed reasonable and wasn't. Most instructive format in engineering."
+  },
+  {
+    id: "rtl-to-silicon",
+    name: "RTL to Silicon",
+    icon: "🔌",
+    desc: "Walkthrough of the full silicon design stack.",
+    longSummary: "The full design stack written by someone who has done it. Start from a concrete RTL idea, walk through what it actually requires: the RTL changes, what synthesis does to the critical path, where timing closes and where it doesn't, what the area report implies about whether the design is worth the cost, what a place-and-route run in OpenROAD shows that simulation doesn't. Content that effectively doesn't exist in readable form — most RTL-to-GDSII documentation is either a vendor tool tutorial or a graduate course with no personality. Written from real results using Verilator, Yosys, and OpenROAD, not hypotheticals."
+  },
+  {
+    id: "the-hard-question",
+    name: "The Hard Question",
+    icon: "❓",
+    desc: "Hardware interview questions used as conceptual lenses.",
+    longSummary: "Interview questions used as a lens, not as prep material. A well-designed interview question is a compressed version of a real engineering judgment call. The interesting thing about \"explain metastability and how you'd handle it\" isn't that it gets asked in interviews — it's that it forces reasoning about the boundary between the deterministic digital abstraction and the analog reality underneath it, which most digital designers ignore until it bites them in production. Format for each piece: the question, what it is actually probing beneath the surface, what a textbook answer looks like, what a genuinely deep answer looks like, and what the best candidates add that most people miss. The delta between a correct answer and a revealing one is where the content lives. Questions worth covering are the ones where the correct answer is a starting point, not an endpoint: what actually happens in a store buffer when a subsequent load hits an in-flight store, why write-invalidate coherence protocols exist and when write-update would have been better, what the hardware does when two cores simultaneously try to acquire the same cache line in modified state, how you'd design an arbiter for an AXI crossbar and what the priority tradeoffs are, what setup and hold violations actually mean at the transistor level and not just the timing diagram level. The pieces read like investigations, not answer keys. Someone who has no interview scheduled should find them just as worth reading as someone who does."
+  }
 ];
 
 export function getTrackArticle(trackId: string): string {
-  switch (trackId) {
-    case "isa":
-      return `# Instruction Set Architecture
-## The Hardware-Software Contract
+  const track = TRACKS.find(t => t.id === trackId);
+  if (!track) return "";
 
-An Instruction Set Architecture (ISA) serves as the abstract boundary between software programs and physical processor hardware, defining supported instructions, registers, memory models, and data types.
+  // Dynamic titles and summaries mapped to markdown
+  return `# Track Info: ${track.name}
+## Series Overview
 
-### Architectural Approaches
-- **RISC (Reduced Instruction Set Computer)**: Prioritizes simple, single-cycle instructions. Compilers combine simple operations to perform complex work (e.g., RISC-V, ARM).
-- **CISC (Complex Instruction Set Computer)**: Emphasizes dense instruction encoding where single instructions perform multiple operations (e.g., x86).
-- **VLIW (Very Long Instruction Word)**: Shifts instruction scheduling and dependency resolution entirely to the compiler, executing instructions in parallel bundles.
+${track.longSummary}
 
-### The RISC-V Revolution
-RISC-V has emerged as an open, royalty-free standard, enabling modular hardware customization. Through base instruction sets (RV32I/RV64I) and modular extensions (M: Math, A: Atomic, F/D: Floating Point, V: Vector), developers can tailor compute architectures without legacy overhead.`;
+---
 
-    case "pipelines":
-      return `# Processor Pipelines
-## Instruction Flow & Out-of-Order Execution
-
-Modern execution pipelines split instruction processing into sequential stages, running multiple instructions in parallel to maximize instruction throughput (IPC).
-
-### Classic Pipeline Stages
-- **Fetch**: Reads instruction bytes from the L1 instruction cache using the branch predictor's target address.
-- **Decode**: Translates binary instructions into internal micro-operations (uOps).
-- **Register Rename**: Maps architectural registers to a larger physical register file to eliminate artificial read-after-write dependencies.
-- **Dispatch & Issue**: Buffers uOps in reservation stations and issues them out-of-order to execution ports once their source operands are ready.
-- **Execute**: Computes results in integer ALUs, address generation units (AGUs), or floating-point units.
-- **Retire**: Commits results back to architectural state in original program order to maintain precise interrupts.
-
-### Out-of-Order Execution (OoO)
-By tracking dynamic data dependencies rather than literal assembly ordering, OoO execution engines bypass stall points (like cache misses) to continue doing useful compute on independent instruction paths.`;
-
-    case "memory":
-      return `# Caches & Memory
-## Bridging the Processor-Memory Wall
-
-The speed gap between processors and main memory (DRAM) has grown exponentially over decades. Modern architectures employ a deep memory hierarchy to keep execution pipelines fed.
-
-### Cache Hierarchy
-- **L1 Cache**: Ultra-fast (1-3 cycles latency) split caches for instructions and data, integrated directly inside each core.
-- **L2 Cache**: Larger, slightly slower coherent cache serving as a private buffer for individual cores.
-- **L3 / System Cache**: Massive, shared SRAM pool acting as a central victim cache and interconnect buffer.
-- **DRAM**: High-density external memory (LPDDR5x/HBM) connected via wide, high-speed physical interfaces (PHY).
-
-### Coherence & Protocols
-To maintain a single unified view of memory across multiple processor cores, hardware controllers enforce cache coherence protocols (such as MESI or MOESI), invalidating or updating stale cache lines as write operations occur.`;
-
-    case "interconnects":
-      return `# Silicon Interconnects
-## On-Die Fabrics & Networks-on-Chip (NoC)
-
-As core counts scale, communication between heterogeneous components (CPUs, GPUs, memory, peripherals) becomes the primary bottleneck of system performance and energy efficiency.
-
-### Interconnect Topologies
-- **Crossbar Switches**: Dedicated peer-to-peer connections between all nodes. High performance, but wiring complexity scales quadratically ($O(N^2)$).
-- **Ring Buses**: Nodes communicate via a shared circular loop. Simple, cost-effective routing, but latency increases linearly with ring size.
-- **Network-on-Chip (NoC)**: Employs packet-switched routing nodes mapped in 2D grid meshes. Scales horizontally to handle hundreds of independent nodes.
-
-### Protocol Domains
-On-die fabrics bridge multiple voltage and clock frequency boundaries using asynchronous FIFOs, ensuring clean packet transitions without corrupting packet headers.`;
-
-    case "gpu":
-      return `# GPU & Parallelism
-## Throughput-Oriented Shader Pipelines
-
-Unlike latency-focused CPUs, GPUs are engineered for massive data throughput, dedicating most of their die area to execution units (ALUs) rather than caches and control logic.
-
-### Compute Model
-- **SIMT (Single Instruction, Multiple Threads)**: Groups execution threads into bundles (warps/wavefronts). A single control unit issues instructions to dozens of ALUs executing in lockstep.
-- **Tile-Based Rendering (TBDR)**: Divides screen space into small tiles, processing geometry and rasterization locally inside on-chip caches to conserve memory bandwidth.
-- **Hardware BVH Accelerators**: Traverses Bounding Volume Hierarchies in silicon, calculating ray-geometry intersections for real-time path tracing.`;
-
-    case "ai":
-      return `# AI Accelerators
-## Systolic Arrays & Matrix Math Engines
-
-Deep learning models rely heavily on high-density matrix multiplications. Domain-specific accelerators (NPUs, TPUs) achieve extreme efficiency by optimizing data reuse patterns.
-
-### Systolic Array Dataflow
-A systolic array passes input activations and weight parameters through a 2D grid of processing elements (multiply-accumulate cells). Data flows step-by-step through neighboring cells, eliminating the need to read and write intermediate results back to registers or caches.
-
-### Architectural Features
-- **Quantization Support**: Native hardware support for low-precision data types (INT8, FP16, INT4) to quadruple compute density.
-- **Adjacent Weights Cache**: Massive local SRAM pools (like 12MB SRAM) placed right next to execution columns to minimize external DRAM power draw.`;
-
-    case "vlsi":
-      return `# VLSI Fabrication
-## EUV Photolithography & GAA Transistors
-
-Fabricating microscopic integrated circuits on silicon wafers requires pushing the physical limits of chemistry, optics, and material science.
-
-### Manufacturing Pipeline
-- **EUV Lithography**: Employs extreme ultraviolet light ($\lambda = 13.5\text{nm}$) to print transistor designs onto silicon wafers with sub-nanometer accuracy.
-- **FinFET**: Transistor design using vertical channel fins wrapped by gates on 3 sides to prevent leakage currents.
-- **GAA (Gate-All-Around) Nanosheet**: Next-generation transistor structure wrapping the gate completely around horizontal channel nanosheets, offering superior electrostatic control.`;
-
-    case "power":
-      return `# Power & DVFS
-## Thermal Budgets & Power Delivery
-
-Every active gate dissipates dynamic energy ($C V^2 f$). Dynamic Power Management systems balance performance against battery and thermal limits.
-
-### Power Mitigation
-- **Power Islands**: Isolates blocks within independent power domains, allowing unused sections (like the GPU or NPU) to be fully turned off (gated).
-- **DVFS (Dynamic Voltage and Frequency Scaling)**: Adjusts voltage and clock frequency on the fly to match processing load.
-- **Thermal Throttling**: Monitors on-die thermal sensors and dynamically caps frequency when local silicon temperature approaches critical junction limits ($~105^\circ\text{C}$).`;
-
-    case "os-compilers":
-      return `# OS & Compilers
-## Hardware-Software Co-Design
-
-The runtime behavior of compute hardware depends entirely on compilers translating code and Operating Systems scheduling execution threads.
-
-### Compiler Role
-Compilers analyze instruction sequences, resolving data hazards, scheduling instructions to hide memory latency, and allocating physical registers via graph coloring.
-
-### OS Runtime Control
-The OS kernel manages virtual-to-physical address mapping via Page Tables, coordinates Page Walks on TLB misses, and schedules execution threads across asymmetric cores (big.LITTLE scheduling) to optimize power and performance.`;
-
-    default:
-      return "";
-  }
+### Editorial Format
+- **Voice & Tone**: High technical integrity, zero simplification, historically contextualized.
+- **Focus Area**: Real engineering trade-offs and operational boundary conditions.
+- **Audience**: Systems developers, ASIC designers, and compilers engineers.`;
 }

@@ -559,6 +559,11 @@ function getTargetBlockT(blockId: string, levelFloat: number, manualT: number): 
     return getStaggeredT(blockId, manualT);
   }
 
+  // Level 11: fully assembled chip or manual explode slider
+  if (levelFloat >= 10.5) {
+    return getStaggeredT(blockId, manualT);
+  }
+
   // Level 10: pipeline stage focus on cpu-big
   if (levelFloat >= 9.5) {
     if (blockId === "cpu-big") {
