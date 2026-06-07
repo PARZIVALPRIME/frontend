@@ -1,7 +1,6 @@
 import * as THREE from "three";
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Edges } from "@react-three/drei";
 import { TransistorFlowShader } from "./shaders";
 
 const AMBER = "#e8a23a";
@@ -31,9 +30,6 @@ export function ComputerCasing({ levelFloat }: { levelFloat: number }) {
           transparent 
           opacity={0.65 * opacityMultiplier} 
         />
-        <Edges threshold={15}>
-          <lineBasicMaterial color={STEEL} transparent opacity={0.4 * opacityMultiplier} />
-        </Edges>
       </mesh>
       {/* Keyboard Well Outline */}
       <mesh position={[0, 0.61, -3]}>
@@ -45,9 +41,6 @@ export function ComputerCasing({ levelFloat }: { levelFloat: number }) {
           transparent
           opacity={opacityMultiplier}
         />
-        <Edges threshold={15}>
-          <lineBasicMaterial color={AMBER} transparent opacity={0.25 * opacityMultiplier} />
-        </Edges>
       </mesh>
       {/* Trackpad Outline */}
       <mesh position={[0, 0.61, 10]}>
@@ -59,9 +52,6 @@ export function ComputerCasing({ levelFloat }: { levelFloat: number }) {
           transparent
           opacity={opacityMultiplier}
         />
-        <Edges threshold={15}>
-          <lineBasicMaterial color={AMBER} transparent opacity={0.15 * opacityMultiplier} />
-        </Edges>
       </mesh>
     </group>
   );
@@ -79,9 +69,6 @@ export function MotherboardPCB({ active }: { active: boolean }) {
       <mesh receiveShadow>
         <boxGeometry args={[32, 0.4, 28]} />
         <meshStandardMaterial color="#0b1016" metalness={0.5} roughness={0.7} />
-        <Edges threshold={15}>
-          <lineBasicMaterial color="#1e2c3c" />
-        </Edges>
       </mesh>
 
       {/* PCB Trace Pattern Lines */}
@@ -121,12 +108,40 @@ export function MotherboardPCB({ active }: { active: boolean }) {
         <mesh key={i} position={[x, 0.45, -11]} castShadow>
           <boxGeometry args={[1.2, 0.6, 1.2]} />
           <meshStandardMaterial color="#161a22" roughness={0.8} metalness={0.2} />
-          <Edges threshold={15}>
-            <lineBasicMaterial color={AMBER} transparent opacity={0.5} />
-          </Edges>
         </mesh>
       ))}
     </group>
+  );
+}
+
+const _ballGeo = new THREE.SphereGeometry(0.22, 10, 10);
+const _ballMat = new THREE.MeshStandardMaterial({
+  color: "#d4af37",
+  metalness: 0.98,
+  roughness: 0.12,
+  transparent: true,
+});
+
+function SolderBallGrid({ balls, opacity }: { balls: THREE.Vector3[]; opacity: number }) {
+  const ref = useRef<THREE.InstancedMesh>(null!);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  useEffect(() => {
+    balls.forEach((pos, i) => {
+      dummy.position.copy(pos);
+      dummy.updateMatrix();
+      ref.current.setMatrixAt(i, dummy.matrix);
+    });
+    ref.current.instanceMatrix.needsUpdate = true;
+  }, [balls, dummy]);
+
+  useEffect(() => {
+    _ballMat.opacity = opacity;
+    _ballMat.needsUpdate = true;
+  }, [opacity]);
+
+  return (
+    <instancedMesh ref={ref} args={[_ballGeo, _ballMat, balls.length]} />
   );
 }
 
@@ -204,9 +219,6 @@ export function PackageSubstrate({ opacity = 1 }: { opacity?: number }) {
           transparent 
           opacity={opacity} 
         />
-        <Edges threshold={15}>
-          <lineBasicMaterial color="#d4af37" transparent opacity={0.65 * opacity} /> {/* Gold rim */}
-        </Edges>
       </mesh>
 
       {/* Gold substrate border rings */}
@@ -220,9 +232,6 @@ export function PackageSubstrate({ opacity = 1 }: { opacity?: number }) {
             transparent 
             opacity={0.8 * opacity} 
           />
-          <Edges threshold={15}>
-            <lineBasicMaterial color="#ffffff" transparent opacity={0.25 * opacity} />
-          </Edges>
         </mesh>
       ))}
 
@@ -291,19 +300,8 @@ export function PackageSubstrate({ opacity = 1 }: { opacity?: number }) {
         </group>
       ))}
 
-      {/* Golden Solder Micro-Balls grid */}
-      {ballData.map((pos, i) => (
-        <mesh key={i} position={pos}>
-          <sphereGeometry args={[0.22, 10, 10]} />
-          <meshStandardMaterial 
-            color="#d4af37" 
-            metalness={0.98} 
-            roughness={0.12} 
-            transparent 
-            opacity={opacity} 
-          />
-        </mesh>
-      ))}
+      {/* Golden Solder Micro-Balls grid — single instanced draw call */}
+      <SolderBallGrid balls={ballData} opacity={opacity} />
     </group>
   );
 }
@@ -359,9 +357,6 @@ export function PipelineSimulation({
       <mesh receiveShadow>
         <boxGeometry args={[9.0, 0.15, 3.2]} />
         <meshStandardMaterial color="#020306" metalness={0.9} roughness={0.1} />
-        <Edges threshold={15}>
-          <lineBasicMaterial color={AMBER} transparent opacity={0.4} />
-        </Edges>
       </mesh>
 
       {/* Render Stage dividers */}
@@ -371,9 +366,6 @@ export function PipelineSimulation({
           <mesh>
             <boxGeometry args={[0.96, 0.02, 3.0]} />
             <meshStandardMaterial color={st.color} roughness={0.6} />
-            <Edges threshold={15}>
-              <lineBasicMaterial color={AMBER} transparent opacity={0.15} />
-            </Edges>
           </mesh>
         </group>
       ))}

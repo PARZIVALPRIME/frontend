@@ -2,6 +2,8 @@ import { Suspense, useState, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { QualityContext } from "./soc/quality";
 import { CHAPTERS, TOTAL } from "./chapters";
+import { getArticleForLevel, parseMarkdown } from "./chapterArticles";
+import { TRACKS, getTrackArticle } from "./trackArticles";
 
 interface SceneProps {
   t: number;
@@ -103,9 +105,17 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
   const [chapterVisible, setChapterVisible] = useState(true); // text fade state
   const [t, setT] = useState(0.0);
   const [visMode] = useState("physical");
+  const [selectedTrack, setSelectedTrack] = useState<string | null>(null);
+  const [selectedBlock, setSelectedBlock] = useState<string | null>(null);
+
+  useEffect(() => {
+    setSelectedTrack(null);
+    setSelectedBlock(null);
+  }, [targetLevel]);
 
   // ── Scroll accumulator (avoids skipping chapters on fast scrolling) ───────
   const accumRef = useRef(0);
+  const cooldownRef = useRef(false);
 
   // ── Snap-to-chapter scroll: wheel + keyboard ──────────────────────────────
   useEffect(() => {
@@ -123,13 +133,19 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
+      if (cooldownRef.current) return;
       accumRef.current += e.deltaY;
-      if (accumRef.current > 60) {
+      const threshold = 120;
+      if (accumRef.current > threshold) {
         advance(1);
         accumRef.current = 0;
-      } else if (accumRef.current < -60) {
+        cooldownRef.current = true;
+        setTimeout(() => { cooldownRef.current = false; }, 400);
+      } else if (accumRef.current < -threshold) {
         advance(-1);
         accumRef.current = 0;
+        cooldownRef.current = true;
+        setTimeout(() => { cooldownRef.current = false; }, 400);
       }
     };
 
@@ -154,7 +170,7 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
         const diff = targetLevel - prev;
         // Stop when close enough to avoid perpetual rAF
         if (Math.abs(diff) < 0.001) return targetLevel;
-        return prev + diff * 0.072; // ~1s to travel one chapter at 60fps
+        return prev + diff * 0.10; // snappier transition
       });
       raf = requestAnimationFrame(ease);
     };
@@ -184,9 +200,9 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
             <Suspense fallback={null}>
               <SceneEl
                 t={t}
-                showLabels={false}
-                selected={null}
-                setSelected={() => {}}
+                showLabels={targetLevel === 3}
+                selected={selectedBlock}
+                setSelected={setSelectedBlock}
                 mode="Idle"
                 levelFloat={levelFloat}
                 visMode={visMode}
@@ -200,7 +216,7 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
       <div
         className="pointer-events-none absolute inset-0 z-10"
         style={{
-          background: "linear-gradient(to right, rgba(8,9,14,0.92) 0%, rgba(8,9,14,0.7) 45%, transparent 75%)",
+          background: "linear-gradient(to right, rgba(8,9,14,0.95) 0%, rgba(8,9,14,0.85) 30%, transparent 60%)",
           opacity: targetLevel === 1 ? 1 : 0,
           transition: "opacity 700ms ease",
         }}
@@ -277,14 +293,14 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
         </button>
       </div>
 
-      {/* ── Chapters 2–6: Compact bottom-left — always mounted, fades in/out ── */}
+      {/* ── Chapters 2–10: Compact bottom-left — always mounted, fades in/out ── */}
       <div
         className="absolute bottom-16 left-8 z-20 max-w-sm"
         style={{
-          opacity: targetLevel > 1 && chapterVisible ? 1 : 0,
-          transform: targetLevel > 1 && chapterVisible ? "translateY(0)" : "translateY(12px)",
+          opacity: targetLevel > 1 && targetLevel <= 10 && chapterVisible ? 1 : 0,
+          transform: targetLevel > 1 && targetLevel <= 10 && chapterVisible ? "translateY(0)" : "translateY(12px)",
           transition: "opacity 500ms ease, transform 500ms ease",
-          pointerEvents: targetLevel > 1 ? "auto" : "none",
+          pointerEvents: targetLevel > 1 && targetLevel <= 10 ? "auto" : "none",
         }}
       >
         <div className="text-[8px] font-mono font-bold tracking-[0.3em] text-white/40 uppercase mb-2">
@@ -306,9 +322,77 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
           {currentChapter.description}
         </p>
       </div>
+      
+      {/* ── Right: Component detail panel (levels 4–10, or level 3 selected track/block) ── */}
+      {(() => {
+        const hasSelectionInCh3 = targetLevel === 3 && (selectedTrack !== null || selectedBlock !== null);
+        const activeArticle =
+          targetLevel === 3 && selectedTrack !== null
+            ? getTrackArticle(selectedTrack)
+            : targetLevel === 3 && selectedBlock !== null
+            ? (() => {
+                const blockLevelMap: Record<string, number> = {
+                  "cpu-big": 4,
+                  "gpu": 5,
+                  "npu": 6,
+                  "modem": 7,
+                  "isp": 8,
+                  "slc": 9,
+                };
+                const lvl = blockLevelMap[selectedBlock];
+                return lvl ? getArticleForLevel(lvl) : getArticleForLevel(3);
+              })()
+            : getArticleForLevel(targetLevel);
+
+        const isVisible = ((targetLevel >= 4 && targetLevel <= 10) || hasSelectionInCh3) && chapterVisible;
+
+        return (
+          <div
+            className="absolute right-8 top-1/2 -translate-y-1/2 z-20 w-[320px] max-h-[65vh] overflow-y-auto rounded-xl border border-white/8 bg-black/50 backdrop-blur-xl p-5 scrollbar-thin"
+            style={{
+              opacity: isVisible ? 1 : 0,
+              transform: isVisible
+                ? "translateY(-50%) translateX(0)"
+                : "translateY(-50%) translateX(16px)",
+              transition: "opacity 500ms ease, transform 500ms ease",
+              pointerEvents: isVisible ? "auto" : "none",
+            }}
+          >
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-[8px] font-mono font-bold tracking-[0.25em] text-[#e8a23a]/70 uppercase">
+                {targetLevel === 3
+                  ? selectedTrack !== null
+                    ? "Technical Track"
+                    : "Block Detail"
+                  : "Component Detail"}
+              </div>
+              {targetLevel === 3 && hasSelectionInCh3 && (
+                <button
+                  onClick={() => {
+                    setSelectedTrack(null);
+                    setSelectedBlock(null);
+                  }}
+                  className="text-[9px] font-mono text-white/40 hover:text-[#e8a23a] transition-colors"
+                >
+                  [CLOSE]
+                </button>
+              )}
+            </div>
+            <div className="text-left text-white/80">
+              {parseMarkdown(activeArticle)}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Right side: Chapter navigation dots ──────────────────────────── */}
-      <div className="absolute right-8 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-3 items-center">
+      <div
+        className="absolute right-8 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-3 items-center transition-all duration-500"
+        style={{
+          opacity: targetLevel === 11 ? 0 : 1,
+          pointerEvents: targetLevel === 11 ? "none" : "auto",
+        }}
+      >
         {CHAPTERS.map((c) => (
           <button
             key={c.level}
@@ -343,8 +427,179 @@ export function AppUI({ sceneComponent: SceneComp, quality = "desktop" }: UiProp
         ))}
       </div>
 
+      {/* ── Chapter 3: Technical Tracks Menu ───────────────────────────────── */}
+      <div
+        className="absolute top-[110px] left-8 z-20 w-[270px] bg-black/40 border border-white/8 backdrop-blur-xl rounded-xl p-4 text-left"
+        style={{
+          opacity: targetLevel === 3 && chapterVisible ? 1 : 0,
+          transform: targetLevel === 3 && chapterVisible ? "translateY(0)" : "translateY(-12px)",
+          pointerEvents: targetLevel === 3 ? "auto" : "none",
+          transition: "opacity 500ms ease, transform 500ms ease",
+        }}
+      >
+        <div className="text-[8px] font-mono font-bold tracking-[0.25em] text-[#e8a23a]/75 uppercase mb-1.5">
+          Tech Tracks Directory
+        </div>
+        <div className="w-10 h-px bg-[#e8a23a]/30 mb-3" />
+        <div className="flex flex-col gap-1.5 max-h-[55vh] overflow-y-auto pr-1 scrollbar-none">
+          {TRACKS.map((track) => {
+            const active = selectedTrack === track.id;
+            return (
+              <button
+                key={track.id}
+                onClick={() => {
+                  setSelectedTrack(track.id);
+                  setSelectedBlock(null);
+                }}
+                className={`flex items-start gap-2.5 text-left p-2 rounded transition-all duration-200 border group ${
+                  active
+                    ? "bg-[#e8a23a]/10 border-[#e8a23a]/30"
+                    : "bg-white/[0.01] border-transparent hover:bg-white/[0.04] hover:border-white/5"
+                }`}
+              >
+                <span className="text-[11px] mt-0.5">{track.icon}</span>
+                <div className="flex flex-col">
+                  <span className={`text-[9.5px] font-semibold tracking-wide transition-colors ${
+                    active ? "text-[#e8a23a]" : "text-white/80 group-hover:text-white"
+                  }`}>
+                    {track.name}
+                  </span>
+                  <span className="text-[8px] text-white/40 leading-normal mt-0.5 font-light">
+                    {track.desc}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Level 11: Full-screen Dark Backdrop Overlay ───────────────────── */}
+      <div
+        className="pointer-events-none absolute inset-0 z-15 bg-black/75 transition-opacity duration-1000 ease-in-out"
+        style={{
+          opacity: levelFloat >= 10.5 ? 1 : 0,
+        }}
+      />
+
+      {/* ── Level 11: Hub Directory & Team Dashboard ──────────────────────── */}
+      <div
+        className="absolute inset-x-8 top-24 bottom-20 z-25 text-left"
+        style={{
+          opacity: targetLevel === 11 && chapterVisible ? 1 : 0,
+          transform: targetLevel === 11 && chapterVisible ? "translateY(0)" : "translateY(16px)",
+          pointerEvents: targetLevel === 11 ? "auto" : "none",
+          transition: "opacity 600ms ease, transform 600ms ease",
+        }}
+      >
+        <div className="grid grid-cols-12 gap-6 h-full">
+          {/* Column 1: About & Team */}
+          <div className="col-span-3 bg-black/40 border border-white/8 backdrop-blur-xl rounded-xl p-5 flex flex-col justify-between overflow-y-auto scrollbar-thin">
+            <div>
+              <div className="text-[9px] font-mono font-bold tracking-[0.3em] text-[#e8a23a] uppercase mb-1">
+                Bits&apos;nBrews
+              </div>
+              <div className="text-[10px] font-semibold tracking-[0.1em] text-white/30 uppercase mb-4">
+                Architecture Explorer
+              </div>
+              <div className="w-12 h-px bg-[#e8a23a]/30 mb-4" />
+              <p className="text-[11px] leading-[1.65] text-white/55 font-light">
+                Bits&apos;nBrews is an interactive digital engineering museum. We bridge the gap between dense academic hardware briefs and practical systems design using real-time spatial simulation.
+              </p>
+            </div>
+
+            <div className="mt-8 border-t border-white/5 pt-4">
+              <div className="text-[8px] font-mono font-bold tracking-[0.2em] text-[#e8a23a]/75 uppercase mb-3">
+                Development Team
+              </div>
+              <div className="flex flex-col gap-3">
+                <div>
+                  <div className="text-[10px] font-semibold text-white/80">Dhruv</div>
+                  <div className="text-[8px] font-mono text-white/35 uppercase tracking-wider mt-0.5">
+                    Lead Architectural Developer
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-semibold text-white/80">Gemini Partner</div>
+                  <div className="text-[8px] font-mono text-white/35 uppercase tracking-wider mt-0.5">
+                    AI Pair Programmer
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] font-semibold text-white/80">Parzival Prime</div>
+                  <div className="text-[8px] font-mono text-white/35 uppercase tracking-wider mt-0.5">
+                    Graphics Director
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 2: All Technical Tracks Index */}
+          <div className="col-span-4 bg-black/40 border border-white/8 backdrop-blur-xl rounded-xl p-5 flex flex-col overflow-hidden">
+            <div className="text-[8px] font-mono font-bold tracking-[0.25em] text-[#e8a23a]/75 uppercase mb-1.5">
+              Technical Index Directory
+            </div>
+            <div className="w-8 h-px bg-[#e8a23a]/30 mb-3" />
+            <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin flex flex-col gap-1.5">
+              {TRACKS.map((track) => {
+                const active = selectedTrack === track.id;
+                return (
+                  <button
+                    key={track.id}
+                    onClick={() => setSelectedTrack(track.id)}
+                    className={`flex items-start gap-3 text-left p-2.5 rounded transition-all duration-200 border group ${
+                      active
+                        ? "bg-[#e8a23a]/10 border-[#e8a23a]/30"
+                        : "bg-white/[0.01] border-transparent hover:bg-white/[0.04] hover:border-white/5"
+                    }`}
+                  >
+                    <span className="text-[13px] mt-0.5">{track.icon}</span>
+                    <div className="flex flex-col">
+                      <span className={`text-[10px] font-semibold tracking-wide transition-colors ${
+                        active ? "text-[#e8a23a]" : "text-white/80 group-hover:text-white"
+                      }`}>
+                        {track.name}
+                      </span>
+                      <span className="text-[8.5px] text-white/40 leading-normal mt-0.5 font-light">
+                        {track.desc}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Column 3: Article Content Reader */}
+          <div className="col-span-5 bg-black/40 border border-white/8 backdrop-blur-xl rounded-xl p-6 overflow-y-auto scrollbar-thin">
+            {selectedTrack ? (
+              <div className="text-white/85 text-left transition-all duration-300">
+                {parseMarkdown(getTrackArticle(selectedTrack))}
+              </div>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-center opacity-40 px-8">
+                <span className="text-3xl mb-3">📖</span>
+                <div className="text-[10px] font-mono font-bold tracking-[0.2em] uppercase text-[#e8a23a]/80 mb-2">
+                  Technical Spec Reader
+                </div>
+                <p className="text-[9.5px] leading-relaxed max-w-[260px] font-light">
+                  Select an architectural technical track from the directory index to read the full specifications and design briefs.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* ── Bottom: progress bar + scroll hint ───────────────────────────── */}
-      <div className="absolute bottom-6 left-8 right-8 z-20 flex items-center gap-4">
+      <div 
+        className="absolute bottom-6 left-8 right-8 z-20 flex items-center gap-4 transition-all duration-500"
+        style={{
+          opacity: targetLevel === 11 ? 0 : 1,
+          pointerEvents: targetLevel === 11 ? "none" : "auto",
+        }}
+      >
         {/* Progress bar */}
         <div className="flex-1 h-px bg-white/[0.07] relative overflow-hidden rounded-full">
           <div

@@ -1,4 +1,3 @@
-import { Edges } from "@react-three/drei";
 import type { Block } from "./data";
 
 const AMBER = "#e8a23a";
@@ -50,9 +49,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
         <mesh position={[-w / 4, 0.02, 0]} castShadow>
           <boxGeometry args={[w / 2 - 0.1, 0.04, d - 0.2]} />
           {metalMat("#131c2c", 0.4, 0.8)}
-          <Edges threshold={15}>
-            <lineBasicMaterial color={AMBER} transparent opacity={0.15 * currentOpacity} />
-          </Edges>
         </mesh>
         
         {/* Cache subdivisions */}
@@ -73,9 +69,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
             <mesh castShadow>
               <boxGeometry args={[w / 2.3, 0.12, d / 4.5]} />
               {metalMat("#cfd2d6", 0.15, 0.98)}
-              <Edges threshold={15}>
-                <lineBasicMaterial color={AMBER} transparent opacity={0.35 * currentOpacity} />
-              </Edges>
             </mesh>
             {/* Center core contact plate (copper) */}
             <mesh position={[0, 0.062, 0]}>
@@ -104,9 +97,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
               <mesh castShadow>
                 <boxGeometry args={[w / 2.4, 0.08, d / 2.4]} />
                 {metalMat("#3a4e68", 0.2, 0.9)}
-                <Edges threshold={15}>
-                  <lineBasicMaterial color={AMBER} transparent opacity={0.25 * currentOpacity} />
-                </Edges>
               </mesh>
               <mesh position={[0, 0.042, 0]}>
                 <boxGeometry args={[w / 3.5, 0.01, d / 3.5]} />
@@ -146,9 +136,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
               <mesh key={`${r}-${c}`} position={[posX, height / 2 + 0.01, posZ]} castShadow>
                 <boxGeometry args={[sizeX, height, sizeZ]} />
                 {isGlowing ? glowMat("#a855f7", 1.4) : metalMat("#2c1b47", 0.22, 0.95)}
-                <Edges threshold={15}>
-                  <lineBasicMaterial color={isGlowing ? "#d8b4fe" : AMBER} transparent opacity={0.2 * currentOpacity} />
-                </Edges>
               </mesh>
             );
           })
@@ -234,9 +221,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
               <mesh castShadow>
                 <boxGeometry args={[w - 0.3, 0.06, d / banks - 0.08]} />
                 {metalMat("#1c2a3d", 0.18, 0.96)}
-                <Edges threshold={15}>
-                  <lineBasicMaterial color={AMBER} transparent opacity={0.15 * currentOpacity} />
-                </Edges>
               </mesh>
               {/* Cache bank central micro-groove */}
               <mesh position={[0, 0.032, 0]}>
@@ -258,9 +242,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
         <mesh position={[0, 0.05, 0]} castShadow>
           <boxGeometry args={[w - 0.15, 0.1, d - 0.15]} />
           {metalMat("#0a0f18", 0.4, 0.9)}
-          <Edges threshold={15}>
-            <lineBasicMaterial color={AMBER} transparent opacity={0.2 * currentOpacity} />
-          </Edges>
         </mesh>
         
         {/* Micro-solder-balls intermediate bonding layer */}
@@ -277,9 +258,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
         <mesh position={[0, 0.17, 0]} castShadow>
           <boxGeometry args={[w - 0.25, 0.08, d - 0.25]} />
           {metalMat("#111824", 0.35, 0.9)}
-          <Edges threshold={15}>
-            <lineBasicMaterial color={AMBER} transparent opacity={0.2 * currentOpacity} />
-          </Edges>
         </mesh>
         
         {/* Gold side contact wire loops */}
@@ -301,9 +279,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
         <mesh position={[0, 0.06, 0]} castShadow>
           <boxGeometry args={[w - 0.1, 0.12, d - 0.1]} />
           {metalMat("#3a2d24", 0.25, 0.9)}
-          <Edges threshold={15}>
-            <lineBasicMaterial color={AMBER} transparent opacity={0.3 * currentOpacity} />
-          </Edges>
         </mesh>
         {/* RF grid mesh screen */}
         <mesh position={[0, 0.125, 0]}>
@@ -335,9 +310,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
           <mesh key={idx} position={[x, 0.12, -d / 4]} castShadow>
             <boxGeometry args={[w / 3, 0.16, d / 3.5]} />
             {metalMat("#0f0e0c", 0.8, 0.2)}
-            <Edges threshold={15}>
-              <lineBasicMaterial color={AMBER} transparent opacity={0.3 * currentOpacity} />
-            </Edges>
           </mesh>
         ))}
         
@@ -369,9 +341,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
         <mesh position={[0, 0.02, 0]} castShadow>
           <boxGeometry args={[w - 0.1, 0.04, d - 0.1]} />
           {metalMat(baseColor, 0.4, 0.85)}
-          <Edges threshold={15}>
-            <lineBasicMaterial color={AMBER} transparent opacity={0.2 * currentOpacity} />
-          </Edges>
         </mesh>
         
         {/* Micro-Tracks (buses) */}
@@ -398,9 +367,6 @@ export function BlockMicroArchitecture({ block, w, d, h, dimmed, opacity, utiliz
     <mesh position={[0, h + 0.025, 0]} castShadow>
       <boxGeometry args={[Math.max(0.12, w - 0.08), 0.05, Math.max(0.12, d - 0.08)]} />
       {metalMat(block.base, 0.2, 0.9)}
-      <Edges threshold={15} scale={1.001}>
-        <lineBasicMaterial color={AMBER} transparent opacity={0.22 * currentOpacity} />
-      </Edges>
     </mesh>
   );
 }
